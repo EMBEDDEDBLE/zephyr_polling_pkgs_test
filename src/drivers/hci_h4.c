@@ -311,6 +311,7 @@ static inline void read_payload(void)
 
 static inline void read_header(void)
 {
+    BT_ERR("read_header");
     switch (rx.type)
     {
     case H4_NONE:
@@ -331,6 +332,7 @@ static inline void read_header(void)
         CODE_UNREACHABLE;
         return;
     }
+    BT_ERR("read_header1");
 
     if (rx.have_hdr && rx.buf)
     {
@@ -456,6 +458,13 @@ static int h4_send(struct net_buf *buf)
  */
 int bt_hci_transport_setup(void)
 {
+    int ret;
+    ret = h4_driver->open();
+    if (ret < 0)
+    {
+        return -EIO;
+    }
+
     h4_discard(32);
     return 0;
 }

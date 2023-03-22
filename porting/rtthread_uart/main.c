@@ -1,9 +1,9 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>
-#include <windows.h>
+#include <rtthread.h>
 
-#include "windows_driver_serial.h"
+#include "rtthread_driver_serial.h"
 
 #include "chipset_interface.h"
 #include "platform_interface.h"
@@ -20,42 +20,42 @@
 extern void bt_ready(int err);
 extern void app_polling_work(void);
 
-int open_hci_driver(int argc, const char *argv[])
+int bt_init_hci_driver(void)
 {
     bt_uart_interface_t *p_interface = NULL;
     uint8_t com_num;
     // accept config from command line
-    if (argc > 1)
-    {
-        // COM number
-        com_num = strtol(argv[1], NULL, 0);
+    // if (argc > 1)
+    // {
+    //     // COM number
+    //     com_num = strtol(argv[1], NULL, 0);
 
-        bt_uart_interface_t tmp = {0, 0, 0, 0, 0};
+    //     bt_uart_interface_t tmp = {0, 0, 0, 0, 0};
 
-        if (argc == 2)
-        {
-        }
-        else if (argc == 7)
-        {
-            tmp.rate = strtol(argv[2], NULL, 0);
-            tmp.databits = strtol(argv[3], NULL, 0);
-            tmp.stopbits = strtol(argv[4], NULL, 0);
-            tmp.parity = strtol(argv[5], NULL, 0);
-            tmp.flowcontrol = strtol(argv[6], NULL, 0);
+    //     if (argc == 2)
+    //     {
+    //     }
+    //     else if (argc == 7)
+    //     {
+    //         tmp.rate = strtol(argv[2], NULL, 0);
+    //         tmp.databits = strtol(argv[3], NULL, 0);
+    //         tmp.stopbits = strtol(argv[4], NULL, 0);
+    //         tmp.parity = strtol(argv[5], NULL, 0);
+    //         tmp.flowcontrol = strtol(argv[6], NULL, 0);
 
-            p_interface = &tmp;
-        }
-        else
-        {
-            printk("Error, input params length error.");
-            return -1;
-        }
-    }
-    else
-    {
-        printk("Error, must input COM number.");
-        return -1;
-    }
+    //         p_interface = &tmp;
+    //     }
+    //     else
+    //     {
+    //         printk("Error, input params length error.");
+    //         return -1;
+    //     }
+    // }
+    // else
+    // {
+    //     printk("Error, must input COM number.");
+    //     return -1;
+    // }
 
     // Get Input config.
     if (p_interface == NULL)
@@ -65,11 +65,11 @@ int open_hci_driver(int argc, const char *argv[])
 
     if (p_interface == NULL)
     {
-        printk("Error, VID/PID not set.");
+        printk("Error, uart params not set.");
         return -1;
     }
 
-    if (serial_open_device(com_num, p_interface->rate, p_interface->databits, p_interface->stopbits,
+    if (bt_hci_init_serial_device(com_num, p_interface->rate, p_interface->databits, p_interface->stopbits,
                            p_interface->parity, p_interface->flowcontrol) < 0)
     {
         printk("Error, uart open failed.");
@@ -79,26 +79,10 @@ int open_hci_driver(int argc, const char *argv[])
     return 0;
 }
 
-int main(int argc, const char *argv[])
+void zephyr_polling_main1(void* parameter)
 {
     int err = 0;
 
-    bt_log_impl_register(bt_log_impl_local_instance());
-
-    if (open_hci_driver(argc, argv) < 0)
-    {
-        return -1;
-    }
-    bt_hci_chipset_driver_register(bt_hci_chipset_impl_local_instance());
-    bt_storage_kv_register(bt_storage_kv_impl_local_instance());
-    bt_timer_impl_local_init();
-
-    /* Initialize the Bluetooth Subsystem */
-    err = bt_enable(bt_ready);
-
-#if defined(CONFIG_BT_MONITOR_SLEEP)
-    bt_init_monitor_sleep();
-#endif
 
     while (1)
     {
@@ -124,3 +108,75 @@ int main(int argc, const char *argv[])
 
     return (err);
 }
+
+void zephyr_polling_main(void* parameter)
+{
+    int err = 0;
+
+    bt_log_impl_register(bt_log_impl_local_instance());
+
+    if (bt_init_hci_driver() < 0)
+    {
+        return -1;
+    }
+    bt_hci_chipset_driver_register(bt_hci_chipset_impl_local_instance());
+    bt_storage_kv_register(bt_storage_kv_impl_local_instance());
+    bt_timer_impl_local_init();
+
+        printk("bt_enable()\n");
+    /* Initialize the Bluetooth Subsystem */
+    err = bt_enable(bt_ready);
+        printk("bt_enable1()\n");
+
+#if defined(CONFIG_BT_MONITOR_SLEEP)
+    bt_init_monitor_sleep();
+#endif
+
+    while (1)
+    {
+#if defined(CONFIG_BT_MONITOR_SLEEP)
+        if (!bt_check_is_in_sleep())
+        {
+            bt_polling_work();
+
+            if (bt_is_ready() && bt_check_allow_sleep())
+            {
+                bt_sleep_prepare_work();
+            }
+        }
+#else
+        bt_polling_work();
+#endif
+
+        app_polling_work();
+
+        extern void bt_hci_h4_polling(void);
+        bt_hci_h4_polling();
+
+        rt_thread_yield();
+    }
+
+    return (err);
+}
+
+static struct rt_thread zephyr_polling_main_thread;
+
+rt_align(RT_ALIGN_SIZE)
+static rt_uint8_t zephyr_polling_main_thread_stack[4096];
+
+int zephyr_polling_init(void)
+{
+    rt_thread_init(&zephyr_polling_main_thread,
+                   "zephyr_polling_main",
+                   zephyr_polling_main,
+                   RT_NULL,
+                   &zephyr_polling_main_thread_stack[0],
+                   sizeof(zephyr_polling_main_thread_stack),
+                   6,
+                   20);
+
+    rt_thread_startup(&zephyr_polling_main_thread);
+
+    return 0;
+}
+INIT_APP_EXPORT(zephyr_polling_init);
