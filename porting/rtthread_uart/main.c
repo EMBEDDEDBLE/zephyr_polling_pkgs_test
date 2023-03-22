@@ -153,7 +153,8 @@ void zephyr_polling_main(void* parameter)
         extern void bt_hci_h4_polling(void);
         bt_hci_h4_polling();
 
-        rt_thread_yield();
+        //rt_thread_yield();
+        rt_thread_sleep(1);
     }
 
     return (err);
@@ -179,4 +180,5 @@ int zephyr_polling_init(void)
 
     return 0;
 }
-INIT_APP_EXPORT(zephyr_polling_init);
+// INIT_APP_EXPORT(zephyr_polling_init);
+MSH_CMD_EXPORT(zephyr_polling_init, "zephyr_polling start");

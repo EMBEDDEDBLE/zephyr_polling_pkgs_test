@@ -2,9 +2,9 @@
 
 #include "rtthread_bt_storage_kv_impl.h"
 
-#include "base\byteorder.h"
-#include "base\util.h"
-#include "logging\bt_log_impl.h"
+#include "base/byteorder.h"
+#include "base/util.h"
+#include "logging/bt_log_impl.h"
 
 
 static void init_list(struct bt_storage_kv_header *list, uint16_t list_cnt)

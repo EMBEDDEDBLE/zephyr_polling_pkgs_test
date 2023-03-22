@@ -1,6 +1,6 @@
-#include "base\byteorder.h"
-#include "common\timer.h"
-#include "host\hci_core.h"
+#include "base/byteorder.h"
+#include "common/timer.h"
+#include "host/hci_core.h"
 
 #include "logging/bt_log_impl.h"
 

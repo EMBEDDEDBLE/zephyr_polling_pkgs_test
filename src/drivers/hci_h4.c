@@ -14,12 +14,12 @@
 
 #include "base/byteorder.h"
 #include "base/util.h"
-#include "common\timeout.h"
+#include "common/timeout.h"
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
 #include <drivers/hci_driver.h>
 
-#include "utils\k_fifo.h"
+#include "utils/k_fifo.h"
 
 #define BT_DBG_ENABLED  IS_ENABLED(CONFIG_BT_DEBUG_HCI_DRIVER)
 #define LOG_MODULE_NAME bt_driver
@@ -311,7 +311,6 @@ static inline void read_payload(void)
 
 static inline void read_header(void)
 {
-    BT_ERR("read_header");
     switch (rx.type)
     {
     case H4_NONE:
@@ -332,7 +331,6 @@ static inline void read_header(void)
         CODE_UNREACHABLE;
         return;
     }
-    BT_ERR("read_header1");
 
     if (rx.have_hdr && rx.buf)
     {

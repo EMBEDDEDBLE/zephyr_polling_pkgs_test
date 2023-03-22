@@ -3,9 +3,9 @@
 
 #include "rtthread_bt_log_impl.h"
 
-#include "base\byteorder.h"
-#include "logging\bt_log_impl.h"
-#include "logging\bt_log.h"
+#include "base/byteorder.h"
+#include "logging/bt_log_impl.h"
+#include "logging/bt_log.h"
 
 
 #define H4_CMD 0x01
