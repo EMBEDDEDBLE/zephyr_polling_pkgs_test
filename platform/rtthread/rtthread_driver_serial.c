@@ -2,6 +2,7 @@
 #include <rthw.h>
 #include <rtthread.h>
 #include <rtdevice.h>
+#include <board.h>
 
 #include "rtthread_driver_serial.h"
 #include "drivers/hci_driver.h"
@@ -58,18 +59,7 @@ static int hci_driver_h4_open(void)
 
 static int hci_driver_h4_send(uint8_t *buf, uint16_t len)
 {
-    uint16_t remain = len;
-    uint16_t write;
-
-    while (remain > 0) {
-        write = rt_device_write(h4_uart, 0, buf, remain);
-        if (write == 0)
-            return -1;
-
-        remain -= write;
-    }
-
-    return 0;
+    return rt_device_write(h4_uart, 0, buf, len);
 }
 
 static int hci_driver_h4_recv(uint8_t *buf, uint16_t len)

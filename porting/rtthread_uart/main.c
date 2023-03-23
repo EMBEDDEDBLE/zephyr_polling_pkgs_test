@@ -79,35 +79,6 @@ int bt_init_hci_driver(void)
     return 0;
 }
 
-void zephyr_polling_main1(void* parameter)
-{
-    int err = 0;
-
-
-    while (1)
-    {
-#if defined(CONFIG_BT_MONITOR_SLEEP)
-        if (!bt_check_is_in_sleep())
-        {
-            bt_polling_work();
-
-            if (bt_is_ready() && bt_check_allow_sleep())
-            {
-                bt_sleep_prepare_work();
-            }
-        }
-#else
-        bt_polling_work();
-#endif
-
-        app_polling_work();
-
-        extern void bt_hci_h4_polling(void);
-        bt_hci_h4_polling();
-    }
-
-    return (err);
-}
 
 void zephyr_polling_main(void* parameter)
 {
@@ -117,16 +88,14 @@ void zephyr_polling_main(void* parameter)
 
     if (bt_init_hci_driver() < 0)
     {
-        return -1;
+        return;
     }
     bt_hci_chipset_driver_register(bt_hci_chipset_impl_local_instance());
     bt_storage_kv_register(bt_storage_kv_impl_local_instance());
     bt_timer_impl_local_init();
 
-        printk("bt_enable()\n");
     /* Initialize the Bluetooth Subsystem */
     err = bt_enable(bt_ready);
-        printk("bt_enable1()\n");
 
 #if defined(CONFIG_BT_MONITOR_SLEEP)
     bt_init_monitor_sleep();
@@ -153,16 +122,13 @@ void zephyr_polling_main(void* parameter)
         extern void bt_hci_h4_polling(void);
         bt_hci_h4_polling();
 
-        //rt_thread_yield();
-        rt_thread_sleep(1);
+        rt_thread_yield();
+        //rt_thread_sleep(1);
     }
-
-    return (err);
 }
 
 static struct rt_thread zephyr_polling_main_thread;
 
-rt_align(RT_ALIGN_SIZE)
 static rt_uint8_t zephyr_polling_main_thread_stack[4096];
 
 int zephyr_polling_init(void)
