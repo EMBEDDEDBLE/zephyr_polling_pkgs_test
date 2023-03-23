@@ -63,7 +63,12 @@ static const char *get_packet_type_str(uint8_t packet_type, uint8_t in)
 
 static void log_printf_dump(uint8_t level, const char *format, va_list argptr)
 {
-    vprintf(format, argptr);
+    char log_printf_buffer[LOG_FILE_PRINT_BUFFER_MAX_LENGTH];
+
+    int total_len = rt_vsnprintf(log_printf_buffer, sizeof(log_printf_buffer), "%s\n",
+                             argptr);
+    
+    rt_kprintf(log_printf_buffer);
 }
 
 static void log_packet_dump(uint8_t packet_type, uint8_t in, uint8_t *packet, uint16_t len)
@@ -74,10 +79,10 @@ static void log_packet_dump(uint8_t packet_type, uint8_t in, uint8_t *packet, ui
     char msg_str[LOG_FILE_PRINT_BUFFER_MAX_LENGTH];
     log_hex_dump(msg_str, sizeof(msg_str), packet, len);
 
-    int total_len = snprintf(log_printf_buffer, sizeof(log_printf_buffer), "%s %s\n",
+    int total_len = rt_snprintf(log_printf_buffer, sizeof(log_printf_buffer), "%s %s\n",
                              packet_type_str, msg_str);
     
-    printf(log_printf_buffer);
+    rt_kprintf(log_printf_buffer);
 }
 
 static void log_point_dump(uint32_t point)
