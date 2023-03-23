@@ -102,7 +102,7 @@ int uart_init_process(int idx, int rate, int databits, int stopbits, int parity,
     rt_sprintf(device_name, "uart%d\0", idx);
 
     // uart_config.name        = device_name;
-    uart_config.name        = "uart1";
+    uart_config.name        = "uart3";
     uart_config.flowcontrol = flowcontrol;
 
     uart_config.rt_config.baud_rate   = rate;

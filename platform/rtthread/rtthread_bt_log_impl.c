@@ -14,7 +14,7 @@
 #define H4_EVT 0x04
 #define H4_ISO 0x05
 
-#define LOG_FILE_PRINT_BUFFER_MAX_LENGTH (0x1000)
+#define LOG_FILE_PRINT_BUFFER_MAX_LENGTH (0x100)
 
 static const char *get_packet_type_str(uint8_t packet_type, uint8_t in)
 {
@@ -65,7 +65,7 @@ static void log_printf_dump(uint8_t level, const char *format, va_list argptr)
 {
     char log_printf_buffer[LOG_FILE_PRINT_BUFFER_MAX_LENGTH];
 
-    int total_len = rt_vsnprintf(log_printf_buffer, sizeof(log_printf_buffer), "%s\n",
+    int total_len = rt_vsnprintf(log_printf_buffer, sizeof(log_printf_buffer), format,
                              argptr);
     
     rt_kprintf(log_printf_buffer);
