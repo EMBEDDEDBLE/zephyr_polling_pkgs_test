@@ -80,19 +80,16 @@ static void hci_driver_h4_init(void)
 
 
 
+static char device_name[10];
 int uart_init_process(int idx, int rate, int databits, int stopbits, int parity, bool flowcontrol)
 {
     idx = 1;
-    printk("uart_init_process idx: %d, rate: %d, databits: %d, stopbits: %d, parity: %d, "
-           "flowcontrol: %d\n",
+    printk("uart_init_process idx: %d, rate: %d, databits: %d, stopbits: %d, parity: %d, flowcontrol: %d\n",
            idx, rate, databits, stopbits, parity, flowcontrol);
 
-    char device_name[80];
+    rt_sprintf(device_name, "uart%d", idx);
 
-    rt_sprintf(device_name, "uart%d\0", idx);
-
-    // uart_config.name        = device_name;
-    uart_config.name        = "uart3";
+    uart_config.name        = device_name;
     uart_config.flowcontrol = flowcontrol;
 
     uart_config.rt_config.baud_rate   = rate;

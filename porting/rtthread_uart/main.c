@@ -24,53 +24,25 @@ int bt_init_hci_driver(void)
 {
     bt_uart_interface_t *p_interface = NULL;
     uint8_t com_num;
-    // accept config from command line
-    // if (argc > 1)
-    // {
-    //     // COM number
-    //     com_num = strtol(argv[1], NULL, 0);
 
-    //     bt_uart_interface_t tmp = {0, 0, 0, 0, 0};
+    p_interface = (bt_uart_interface_t *)bt_chipset_get_uart_interface();
+    bt_uart_interface_t tmp = {0, 0, 0, 0, 0};
+    tmp.rate = PKG_ZEPHYR_POLLING_HCI_UART_BAUDRATE;
+    tmp.databits = p_interface->databits;
+    tmp.stopbits = p_interface->stopbits;
+    tmp.parity = p_interface->parity;
+#ifdef PKG_ZEPHYR_POLLING_HCI_UART_BAUDRATE_FLOWCONTROL
+    tmp.flowcontrol = 1;
+#endif
+    
+    com_num = PKG_ZEPHYR_POLLING_HCI_UART_INDEX;
+    tmp.rate = PKG_ZEPHYR_POLLING_HCI_UART_BAUDRATE;
+#ifdef PKG_ZEPHYR_POLLING_HCI_UART_BAUDRATE_FLOWCONTROL
+    tmp.flowcontrol = 1;
+#endif
 
-    //     if (argc == 2)
-    //     {
-    //     }
-    //     else if (argc == 7)
-    //     {
-    //         tmp.rate = strtol(argv[2], NULL, 0);
-    //         tmp.databits = strtol(argv[3], NULL, 0);
-    //         tmp.stopbits = strtol(argv[4], NULL, 0);
-    //         tmp.parity = strtol(argv[5], NULL, 0);
-    //         tmp.flowcontrol = strtol(argv[6], NULL, 0);
-
-    //         p_interface = &tmp;
-    //     }
-    //     else
-    //     {
-    //         printk("Error, input params length error.");
-    //         return -1;
-    //     }
-    // }
-    // else
-    // {
-    //     printk("Error, must input COM number.");
-    //     return -1;
-    // }
-
-    // Get Input config.
-    if (p_interface == NULL)
-    {
-        p_interface = (bt_uart_interface_t *)bt_chipset_get_uart_interface();
-    }
-
-    if (p_interface == NULL)
-    {
-        printk("Error, uart params not set.");
-        return -1;
-    }
-
-    if (bt_hci_init_serial_device(com_num, p_interface->rate, p_interface->databits, p_interface->stopbits,
-                           p_interface->parity, p_interface->flowcontrol) < 0)
+    if (bt_hci_init_serial_device(com_num, tmp.rate, tmp.databits, tmp.stopbits,
+                           tmp.parity, tmp.flowcontrol) < 0)
     {
         printk("Error, uart open failed.");
         return -1;
@@ -96,6 +68,10 @@ void zephyr_polling_main(void* parameter)
 
     /* Initialize the Bluetooth Subsystem */
     err = bt_enable(bt_ready);
+    if(err)
+    {
+        printk("bt_enable(), err: %d\n", err);
+    }
 
 #if defined(CONFIG_BT_MONITOR_SLEEP)
     bt_init_monitor_sleep();
@@ -127,22 +103,18 @@ void zephyr_polling_main(void* parameter)
     }
 }
 
-static struct rt_thread zephyr_polling_main_thread;
-
-static rt_uint8_t zephyr_polling_main_thread_stack[4096];
-
 int zephyr_polling_init(void)
 {
-    rt_thread_init(&zephyr_polling_main_thread,
-                   "zephyr_polling_main",
-                   zephyr_polling_main,
-                   RT_NULL,
-                   &zephyr_polling_main_thread_stack[0],
-                   sizeof(zephyr_polling_main_thread_stack),
-                   6,
-                   20);
+    static rt_thread_t tid = RT_NULL;
 
-    rt_thread_startup(&zephyr_polling_main_thread);
+    tid = rt_thread_create("zephyr_polling_main",
+                            zephyr_polling_main, RT_NULL,
+                            4096,
+                            5, 5);
+    if (tid != RT_NULL)
+    {
+        rt_thread_startup(tid);
+    }
 
     return 0;
 }
