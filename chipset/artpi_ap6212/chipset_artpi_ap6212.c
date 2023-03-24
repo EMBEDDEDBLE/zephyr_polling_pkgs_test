@@ -1,7 +1,4 @@
 #include <errno.h>
-#include <rtthread.h>
-#include <rtdevice.h>
-#include <board.h>
 
 #include "chipset_artpi_ap6212.h"
 
@@ -1520,15 +1517,6 @@ void prepare_start(void)
 
 void init_work(void)
 {
-    // Enable AP6212 Bluetooth Power(BT_RST_EN)
-    #define BT_AP6212_PIN    GET_PIN(I, 11)
-    rt_pin_mode(BT_AP6212_PIN, PIN_MODE_OUTPUT);
-
-    rt_pin_write(BT_AP6212_PIN, PIN_LOW);
-    rt_thread_mdelay(1000);
-    rt_pin_write(BT_AP6212_PIN, PIN_HIGH);
-    rt_thread_mdelay(1000);
-
     state = STATE_POLLING_BOOTING;
     step = 0;
 }
