@@ -36,10 +36,6 @@ int bt_init_hci_driver(void)
 #endif
     
     com_num = PKG_ZEPHYR_POLLING_HCI_UART_INDEX;
-    tmp.rate = PKG_ZEPHYR_POLLING_HCI_UART_BAUDRATE;
-#ifdef PKG_ZEPHYR_POLLING_HCI_UART_BAUDRATE_FLOWCONTROL
-    tmp.flowcontrol = 1;
-#endif
 
     if (bt_hci_init_serial_device(com_num, tmp.rate, tmp.databits, tmp.stopbits,
                            tmp.parity, tmp.flowcontrol) < 0)
@@ -98,8 +94,8 @@ void zephyr_polling_main(void* parameter)
         extern void bt_hci_h4_polling(void);
         bt_hci_h4_polling();
 
-        rt_thread_yield();
-        //rt_thread_sleep(1);
+        // rt_thread_yield();
+        rt_thread_sleep(1);
     }
 }
 

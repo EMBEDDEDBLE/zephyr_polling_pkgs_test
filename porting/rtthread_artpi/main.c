@@ -113,8 +113,8 @@ void zephyr_polling_main(void* parameter)
         extern void bt_hci_h4_polling(void);
         bt_hci_h4_polling();
 
-        rt_thread_yield();
-//        rt_thread_sleep(10);
+        // rt_thread_yield();
+        rt_thread_sleep(1);
     }
 }
 
