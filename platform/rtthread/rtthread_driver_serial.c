@@ -40,7 +40,7 @@ static int hci_driver_h4_open(void)
     printk("hci_driver_h4_open, uart_config.name: %s\n", uart_config.name);
 
     h4_uart = rt_device_find(uart_config.name);
-    printk("hci_driver_h4_open, h4_uart: 0x%x\n", h4_uart);
+//    printk("hci_driver_h4_open, h4_uart: 0x%x\n", h4_uart);
     RT_ASSERT(h4_uart);
 
     rt_err_t err;

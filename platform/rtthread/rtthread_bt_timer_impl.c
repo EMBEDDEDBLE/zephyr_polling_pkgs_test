@@ -19,6 +19,8 @@ static void zephyr_polling_timer_timeout(void *args)
 #if defined(CONFIG_BT_MONITOR_SLEEP)
     bt_sleep_wakeup_with_timeout();
 #endif
+
+    last_time = cur_time;
 }
 
 static struct rt_timer zephyr_polling_timer;
