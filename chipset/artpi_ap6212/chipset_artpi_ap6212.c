@@ -1474,6 +1474,7 @@ int brcm_patch_offset;
 static int brcm_download_firmware_process(void)
 {
     int cur = brcm_patch_offset;
+    //printk("brcm_download_firmware_process, cur: %d, length: %d\n", cur, brcm_patch_ram_length);
     if(cur != brcm_patch_ram_length)
     {
         struct net_buf *buf;
@@ -1481,6 +1482,7 @@ static int brcm_download_firmware_process(void)
 
         struct bt_hci_cmd_hdr *hdr = (void *)hci_data;
         buf = bt_hci_cmd_create(hdr->opcode, hdr->param_len);
+        //printk("brcm_download_firmware_process, buf: 0x%x, op: 0x%x, len: 0x%x\n", buf, hdr->opcode, hdr->param_len);
         if (!buf)
         {
             return -1;
@@ -1533,22 +1535,26 @@ void init_work(void)
 
 void event_process(uint8_t event, struct net_buf *buf)
 {
-    if ((event == BT_HCI_EVT_VENDOR) ||
-        (event == BT_HCI_EVT_CMD_COMPLETE && (step == 1 || step == 20)))
+    //printk("event_process, state: %d, step: %d, event: 0x%x\n", state, step, event);
+    if(state == STATE_POLLING_BOOTING)
     {
-        switch (step)
+        if ((event == BT_HCI_EVT_VENDOR) ||
+            (event == BT_HCI_EVT_CMD_COMPLETE))
         {
-        case 1:
-            // Start Download Work
-            bt_hci_cmd_send(0xfc2e, NULL);
-            step = 2;
-            break;
-        case 2:
-            if(brcm_download_firmware_process() == 1)
+            switch (step)
             {
-                bt_hci_set_boot_ready();
+            case 1:
+                // Start Download Work
+                bt_hci_cmd_send(0xfc2e, NULL);
+                step = 2;
+                break;
+            case 2:
+                if(brcm_download_firmware_process() == 1)
+                {
+                    bt_hci_set_boot_ready();
+                }
+                break;
             }
-            break;
         }
     }
 }

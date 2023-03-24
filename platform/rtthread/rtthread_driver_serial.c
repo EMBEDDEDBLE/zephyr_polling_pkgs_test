@@ -83,7 +83,6 @@ static void hci_driver_h4_init(void)
 static char device_name[10];
 int uart_init_process(int idx, int rate, int databits, int stopbits, int parity, bool flowcontrol)
 {
-    idx = 1;
     printk("uart_init_process idx: %d, rate: %d, databits: %d, stopbits: %d, parity: %d, flowcontrol: %d\n",
            idx, rate, databits, stopbits, parity, flowcontrol);
 
